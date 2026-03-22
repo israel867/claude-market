@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ceramic Coating BS Detector</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #111113;
+    --surface: #1a1a1e;
+    --surface-raised: #222228;
+    --border: #2e2e35;
+    --text: #e8e8ec;
+    --text-muted: #9898a4;
+    --accent: #d4a24e;
+    --accent-dim: rgba(212, 162, 78, 0.12);
+    --green: #4caf7d;
+    --green-dim: rgba(76, 175, 125, 0.12);
+    --yellow: #d4a24e;
+    --yellow-dim: rgba(212, 162, 78, 0.12);
+    --red: #cf5c5c;
+    --red-dim: rgba(207, 92, 92, 0.12);
+    --radius: 10px;
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+  .topbar-brand {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .topbar-badge {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* ── Progress ── */
+  .progress-wrap {
+    margin-bottom: 40px;
+    display: none;
+  }
+  .progress-wrap.visible { display: block; }
+  .progress-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .progress-bar {
+    height: 4px;
+    background: var(--surface-raised);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── Intro ── */
+  .intro-eyebrow {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .intro-title {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+  }
+  .intro-desc {
+    font-size: 17px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    max-width: 540px;
+  }
+  .intro-stats {
+    display: flex;
+    gap: 24px;
+    margin: 32px 0;
+    flex-wrap: wrap;
+  }
+  .intro-stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  .intro-stat svg {
+    flex-shrink: 0;
+    color: var(--accent);
+  }
+  .intro-disclaimer {
+    font-size: 13px;
+    color: var(--text-muted);
+    border-left: 2px solid var(--border);
+    padding-left: 14px;
+    margin: 28px 0 36px;
+    max-width: 540px;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 14px 28px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #111;
+  }
+  .btn-primary:hover { background: #e0b05e; transform: translateY(-1px); }
+  .btn-secondary {
+    background: var(--surface-raised);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: #2a2a32; }
+
+  /* ── Question Card ── */
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px 28px;
+    margin-bottom: 24px;
+  }
+  .question-number {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .question-claim {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+  .question-claim::before {
+    content: '\201C';
+    color: var(--accent);
+  }
+  .question-claim::after {
+    content: '\201D';
+    color: var(--accent);
+  }
+  .question-source {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  /* ── Answer Options ── */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .option-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 18px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .option-btn:disabled { cursor: default; opacity: 0.5; }
+  .option-btn.selected { border-color: var(--accent); background: var(--accent-dim); opacity: 1; }
+  .option-btn.correct { border-color: var(--green); background: var(--green-dim); opacity: 1; }
+  .option-btn.wrong { border-color: var(--red); background: var(--red-dim); opacity: 1; }
+
+  .option-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.06);
+    color: var(--text-muted);
+  }
+  .option-btn.correct .option-icon { background: var(--green-dim); color: var(--green); }
+  .option-btn.wrong .option-icon { background: var(--red-dim); color: var(--red); }
+
+  /* ── Explanation ── */
+  .explanation {
+    margin-top: 20px;
+    padding: 20px;
+    background: var(--surface-raised);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--accent);
+    display: none;
+  }
+  .explanation.visible { display: block; }
+  .explanation-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .explanation-text {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .next-wrap {
+    display: none;
+    margin-top: 24px;
+  }
+  .next-wrap.visible { display: flex; justify-content: flex-end; }
+
+  /* ── Results ── */
+  .results-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .results-score-ring {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    border: 3px solid var(--border);
+    position: relative;
+  }
+  .results-score-ring::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: var(--accent);
+    border-right-color: var(--accent);
+    transition: all 0.6s ease;
+  }
+  .results-score-ring.high::after { border-color: var(--green); }
+  .results-score-ring.mid::after { border-top-color: var(--yellow); border-right-color: var(--yellow); border-bottom-color: var(--yellow); }
+  .results-score-ring.low::after { border-top-color: var(--red); border-right-color: var(--red); }
+  .results-score-num {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .results-score-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 4px;
+  }
+  .results-title {
+    font-size: clamp(22px, 4vw, 30px);
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+  .results-desc {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  /* ── Breakdown ── */
+  .breakdown {
+    margin: 32px 0;
+  }
+  .breakdown-title {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .breakdown-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .breakdown-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+    margin-top: 2px;
+  }
+  .breakdown-icon.correct { background: var(--green-dim); color: var(--green); }
+  .breakdown-icon.wrong { background: var(--red-dim); color: var(--red); }
+  .breakdown-claim {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .breakdown-verdict {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ── CTA ── */
+  .cta-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 36px 28px;
+    text-align: center;
+    margin-top: 40px;
+  }
+  .cta-box h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .cta-box p {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cta-form {
+    display: flex;
+    gap: 10px;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  .cta-input {
+    flex: 1;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .cta-input:focus { border-color: var(--accent); }
+  .cta-input::placeholder { color: var(--text-muted); }
+  .cta-fine {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 14px;
+  }
+  .cta-success {
+    display: none;
+    padding: 20px;
+    text-align: center;
+  }
+  .cta-success.visible { display: block; }
+  .cta-success p {
+    font-size: 16px;
+    color: var(--green);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .cta-success span {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  /* ── Share ── */
+  .share-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .share-label {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .share-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .share-btn:hover { border-color: var(--accent); }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    .container { padding: 16px 16px 48px; }
+    .question-card { padding: 24px 20px; }
+    .cta-form { flex-direction: column; }
+    .cta-form .btn { width: 100%; }
+    .intro-stats { gap: 16px; }
+    .topbar { margin-bottom: 28px; }
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.4s ease forwards; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-brand">Ceramic Coating BS Detector</div>
+    <div class="topbar-badge">7 Claims. Real Answers.</div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-label">
+      <span id="progressText">Claim 1 of 7</span>
+      <span id="progressScore">Score: 0</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- ═══════ INTRO SCREEN ═══════ -->
+  <div class="screen active" id="screenIntro">
+    <div class="intro-eyebrow">Interactive Tool</div>
+    <h1 class="intro-title">Most ceramic coating marketing is&nbsp;misleading. Can you tell what's&nbsp;real?</h1>
+    <p class="intro-desc">We pulled 7 real claims from coating company websites, ads, and sales pitches. Some are true. Some are exaggerated. Some are flat-out false.</p>
+    <p class="intro-desc">Your job: call BS where you see it.</p>
+
+    <div class="intro-stats">
+      <div class="intro-stat">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        2 minutes
+      </div>
+      <div class="intro-stat">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        7 claims to evaluate
+      </div>
+      <div class="intro-stat">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Plain-English explanations
+      </div>
+    </div>
+
+    <div class="intro-disclaimer">No sales pitch at the end. Just straight answers about what ceramic coatings actually do &mdash; and what they don't. We think you deserve to know before you spend $1,000+.</div>
+
+    <button class="btn btn-primary" onclick="startQuiz()">
+      Start the detector
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+
+  <!-- ═══════ QUESTION SCREEN ═══════ -->
+  <div class="screen" id="screenQuiz">
+    <div class="question-card fade-up" id="questionCard">
+      <div class="question-number" id="questionNumber">Claim 1 of 7</div>
+      <div class="question-claim" id="questionClaim"></div>
+      <div class="question-source" id="questionSource"></div>
+
+      <div class="options" id="optionsWrap"></div>
+
+      <div class="explanation" id="explanation">
+        <div class="explanation-label">The straight answer</div>
+        <div class="explanation-text" id="explanationText"></div>
+      </div>
+    </div>
+
+    <div class="next-wrap" id="nextWrap">
+      <button class="btn btn-primary" onclick="nextQuestion()">
+        Next claim
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════ RESULTS SCREEN ═══════ -->
+  <div class="screen" id="screenResults">
+    <div class="results-header fade-up">
+      <div class="results-score-ring" id="scoreRing">
+        <div class="results-score-num" id="scoreNum">0</div>
+        <div class="results-score-label">of 7</div>
+      </div>
+      <h2 class="results-title" id="resultsTitle"></h2>
+      <p class="results-desc" id="resultsDesc"></p>
+    </div>
+
+    <div class="breakdown" id="breakdown">
+      <div class="breakdown-title">Claim-by-claim breakdown</div>
+      <div id="breakdownList"></div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-box" id="ctaBox">
+      <h3>Now you know what to look for.</h3>
+      <p>We send one email per week. No hype. Just honest answers about ceramic coatings, paint protection, and car care &mdash; written in plain English.</p>
+      <form class="cta-form" id="ctaForm" onsubmit="handleSubmit(event)">
+        <input type="email" class="cta-input" id="ctaEmail" placeholder="Your email" required autocomplete="email">
+        <button type="submit" class="btn btn-primary">Send me the real talk</button>
+      </form>
+      <div class="cta-fine">No spam. Unsubscribe anytime. We don't sell your info.</div>
+      <div class="cta-success" id="ctaSuccess">
+        <p>You're in.</p>
+        <span>Check your inbox. First email is already on its way.</span>
+      </div>
+    </div>
+
+    <!-- Share -->
+    <div class="share-row">
+      <span class="share-label">Think someone else needs this?</span>
+      <button class="share-btn" onclick="shareQuiz('twitter')">Share on X</button>
+      <button class="share-btn" onclick="shareQuiz('copy')">Copy link</button>
+    </div>
+
+    <div class="footer">
+      Built by a detailer who got tired of the industry's marketing BS.<br>
+      We're a detail shop, not a marketing department. Ask us anything.
+    </div>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    claim: "Ceramic coatings are scratch-proof and will protect your paint from rock chips.",
+    source: "Common claim found on detailer websites and coating brand ads",
+    correct: 2,
+    options: ["Legit", "Exaggerated", "Total BS"],
+    explanation: "Ceramic coatings add a thin, hard layer — typically 1-3 microns thick. That's not stopping a rock or a key. They resist light swirl marks from washing better than bare clear coat, but \"scratch-proof\" is false. No coating replaces paint protection film for impact resistance. If a detailer tells you this, keep walking."
+  },
+  {
+    claim: "You'll never need to wash your car again after a ceramic coating.",
+    source: "Repeated in consumer-facing ads and social media posts",
+    correct: 2,
+    options: ["Legit", "Exaggerated", "Total BS"],
+    explanation: "Your car will still get dirty. Period. What changes: dirt and contaminants don't bond as aggressively to a coated surface, so washing is easier and you can go a bit longer between washes. But \"never wash again\"? That's a lie that sets buyers up for disappointment. You'll still wash your car — you'll just enjoy doing it more."
+  },
+  {
+    claim: "Ceramic coatings provide strong UV protection that prevents paint from fading and oxidizing.",
+    source: "Manufacturer technical specifications and product data sheets",
+    correct: 0,
+    options: ["Legit", "Exaggerated", "Total BS"],
+    explanation: "This one's real. Ceramic coatings contain UV-absorbing properties that measurably reduce paint oxidation and fading over time. It won't make your car immune to sun damage forever, but it significantly slows the process — especially on single-stage and red/black paints that are most vulnerable. This is one of the genuinely proven benefits."
+  },
+  {
+    claim: "Our 9H-rated coating is as hard as sapphire — the hardest automotive coating on the market.",
+    source: "Common in product marketing materials and installer sales pitches",
+    correct: 1,
+    options: ["Legit", "Exaggerated", "Total BS"],
+    explanation: "This is a deliberate confusion of two different scales. The \"9H\" in coatings refers to pencil hardness (a soft-lead test where 9H is the top pencil grade). Sapphire is 9 on the Mohs mineral hardness scale — a completely different measurement. Comparing them is like saying your car goes \"100\" without specifying mph or km/h. The coating is hard for a coating. It's not sapphire. Any brand using this comparison is banking on you not knowing the difference."
+  },
+  {
+    claim: "A professional ceramic coating makes your car's paint easier to clean and more resistant to chemical staining from bird droppings, tree sap, and bug splatter.",
+    source: "Detailer service descriptions and brand product pages",
+    correct: 0,
+    options: ["Legit", "Exaggerated", "Total BS"],
+    explanation: "This is the bread-and-butter of what coatings actually do well. The hydrophobic surface means contaminants sit on top rather than etching into the clear coat. Bird droppings that would normally stain bare paint in 24 hours take significantly longer to cause damage on a coated surface. You still need to clean them off — but the window before permanent damage is much wider. Honest detailers lead with this benefit because it's real."
+  },
+  {
+    claim: "Our ceramic coating comes with a lifetime warranty, so your car is protected forever.",
+    source: "Premium coating package advertising",
+    correct: 1,
+    options: ["Legit", "Exaggerated", "Total BS"],
+    explanation: "\"Lifetime warranty\" sounds bulletproof. Then you read the fine print. Most require annual inspections at a certified installer ($100-300 each). Many require you to use only their branded maintenance products. Miss one inspection? Warranty voided. The warranty typically covers reapplication of the coating if it fails — not paint damage underneath. And it usually isn't transferable if you sell the car. A lifetime warranty exists. It just doesn't do what most people think it does."
+  },
+  {
+    claim: "Ceramic coatings create a permanent bond with your vehicle's paint that will last the lifetime of the car without any maintenance.",
+    source: "Commonly used in premium coating brand marketing",
+    correct: 1,
+    options: ["Legit", "Exaggerated", "Total BS"],
+    explanation: "The \"permanent bond\" part is partly true — professional coatings chemically bond to clear coat and can't be washed off like a wax. But \"lifetime of the car without maintenance\" is where it falls apart. Every coating degrades through UV exposure, chemical exposure, and mechanical wear. Even the best professional coatings realistically last 3-7 years depending on conditions, maintenance, and the specific product. Claiming no maintenance is needed contradicts every manufacturer's own care instructions."
+  }
+];
+
+let currentQ = 0;
+let score = 0;
+let answers = [];
+
+function startQuiz() {
+  document.getElementById('screenIntro').classList.remove('active');
+  document.getElementById('screenQuiz').classList.add('active');
+  document.getElementById('progressWrap').classList.add('visible');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  const card = document.getElementById('questionCard');
+
+  // Reset state
+  document.getElementById('explanation').classList.remove('visible');
+  document.getElementById('nextWrap').classList.remove('visible');
+
+  // Refresh animation
+  card.classList.remove('fade-up');
+  void card.offsetWidth;
+  card.classList.add('fade-up');
+
+  // Fill content
+  document.getElementById('questionNumber').textContent = `Claim ${currentQ + 1} of ${QUESTIONS.length}`;
+  document.getElementById('questionClaim').textContent = q.claim;
+  document.getElementById('questionSource').textContent = q.source;
+  document.getElementById('progressText').textContent = `Claim ${currentQ + 1} of ${QUESTIONS.length}`;
+  document.getElementById('progressScore').textContent = `Score: ${score}`;
+  document.getElementById('progressFill').style.width = `${((currentQ) / QUESTIONS.length) * 100}%`;
+
+  // Render options
+  const wrap = document.getElementById('optionsWrap');
+  wrap.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-icon">${['A','B','C'][i]}</span> ${opt}`;
+    btn.addEventListener('click', () => selectAnswer(i));
+    wrap.appendChild(btn);
+  });
+}
+
+function selectAnswer(idx) {
+  const q = QUESTIONS[currentQ];
+  const buttons = document.querySelectorAll('.option-btn');
+  const isCorrect = idx === q.correct;
+
+  if (isCorrect) score++;
+  answers.push({ question: currentQ, selected: idx, correct: q.correct, isCorrect });
+
+  // Disable all and highlight
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add('correct');
+    if (i === idx && !isCorrect) btn.classList.add('wrong');
+    if (i === idx) btn.classList.add('selected');
+  });
+
+  // Show explanation
+  document.getElementById('explanationText').textContent = q.explanation;
+  document.getElementById('explanation').classList.add('visible');
+  document.getElementById('nextWrap').classList.add('visible');
+  document.getElementById('progressScore').textContent = `Score: ${score}`;
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= QUESTIONS.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResults() {
+  document.getElementById('screenQuiz').classList.remove('active');
+  document.getElementById('progressWrap').classList.remove('visible');
+  document.getElementById('screenResults').classList.add('active');
+  document.getElementById('progressFill').style.width = '100%';
+
+  // Score display
+  document.getElementById('scoreNum').textContent = score;
+  const ring = document.getElementById('scoreRing');
+
+  let title, desc;
+  if (score <= 2) {
+    ring.classList.add('low');
+    title = "The industry's marketing is working on you.";
+    desc = "No judgment — these claims are designed to sound believable. That's exactly why they're a problem. The good news: now you know what to look for. Every explanation above is something most detailers won't tell you because it's bad for sales. We think it's better for you to know.";
+  } else if (score <= 4) {
+    ring.classList.add('mid');
+    title = "You've got decent instincts, but some claims still slipped through.";
+    desc = "You caught some of the obvious ones but missed a few of the claims that sound reasonable until you understand the details. That's by design — the most effective marketing isn't the loud lies, it's the quiet exaggerations. Now you have the full picture.";
+  } else if (score <= 6) {
+    ring.classList.add('mid');
+    title = "You're harder to fool than most.";
+    desc = "You clearly know your way around coating claims. You spotted most of the BS but missed a nuance or two — which makes sense, because some of these are deliberately confusing. You're the kind of buyer who asks the right questions. Keep doing that.";
+  } else {
+    ring.classList.add('high');
+    title = "You didn't fall for any of it.";
+    desc = "Perfect score. You either work in the industry or you've done serious research. Either way, you know exactly what coatings can and can't do. Most detailers would rather you didn't.";
+  }
+
+  document.getElementById('resultsTitle').textContent = title;
+  document.getElementById('resultsDesc').textContent = desc;
+
+  // Breakdown
+  const list = document.getElementById('breakdownList');
+  list.innerHTML = '';
+  answers.forEach((a, i) => {
+    const q = QUESTIONS[a.question];
+    const div = document.createElement('div');
+    div.className = 'breakdown-item';
+    div.innerHTML = `
+      <div class="breakdown-icon ${a.isCorrect ? 'correct' : 'wrong'}">${a.isCorrect ? '&#10003;' : '&#10005;'}</div>
+      <div>
+        <div class="breakdown-claim">${q.claim}</div>
+        <div class="breakdown-verdict">Correct answer: <strong>${q.options[q.correct]}</strong> — You said: <strong>${q.options[a.selected]}</strong></div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function handleSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById('ctaEmail').value;
+
+  // ──────────────────────────────────────────────────
+  // INTEGRATION POINT: Replace this block with your
+  // email service (Mailchimp, ConvertKit, etc.)
+  // Example:
+  //   fetch('https://your-email-api.com/subscribe', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({
+  //       email: email,
+  //       score: score,
+  //       total: QUESTIONS.length,
+  //       answers: answers,
+  //       source: 'bs-detector-quiz'
+  //     })
+  //   });
+  // ──────────────────────────────────────────────────
+
+  console.log('Lead captured:', { email, score, total: QUESTIONS.length, answers });
+
+  document.getElementById('ctaForm').style.display = 'none';
+  document.querySelector('.cta-fine').style.display = 'none';
+  document.getElementById('ctaSuccess').classList.add('visible');
+}
+
+function shareQuiz(platform) {
+  const url = window.location.href;
+  const text = `I scored ${score}/7 on the Ceramic Coating BS Detector. Most of what you've been told about coatings is wrong.`;
+
+  if (platform === 'twitter') {
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+  } else if (platform === 'copy') {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = event.target;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = 'Copy link'; }, 2000);
+    });
+  }
+}
+</script>
+</body>
+</html>
