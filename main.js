@@ -94,12 +94,30 @@ document.addEventListener('DOMContentLoaded', function () {
   if (quoteForm) {
     quoteForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      var alert = document.querySelector('.form-alert--success');
-      if (alert) {
-        alert.style.display = 'block';
-        alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      quoteForm.reset();
+      var btn = quoteForm.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      fetch(quoteForm.action, {
+        method: 'POST',
+        body: new FormData(quoteForm),
+        headers: { 'Accept': 'application/json' }
+      }).then(function (res) {
+        if (res.ok) {
+          var alert = document.querySelector('.form-alert--success');
+          if (alert) {
+            alert.style.display = 'block';
+            alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          quoteForm.reset();
+          btn.textContent = 'Sent!';
+        } else {
+          btn.textContent = 'Error — try again';
+          btn.disabled = false;
+        }
+      }).catch(function () {
+        btn.textContent = 'Error — try again';
+        btn.disabled = false;
+      });
     });
   }
 
