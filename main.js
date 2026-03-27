@@ -97,10 +97,19 @@ document.addEventListener('DOMContentLoaded', function () {
       var btn = quoteForm.querySelector('button[type="submit"]');
       btn.disabled = true;
       btn.textContent = 'Sending...';
+      var formData = new FormData(quoteForm);
+      var data = {};
+      formData.forEach(function (value, key) {
+        if (data[key]) {
+          data[key] = data[key] + ', ' + value;
+        } else {
+          data[key] = value;
+        }
+      });
       fetch(quoteForm.action, {
         method: 'POST',
-        body: new FormData(quoteForm),
-        headers: { 'Accept': 'application/json' }
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
       }).then(function (res) {
         if (res.ok) {
           var alert = document.querySelector('.form-alert--success');
